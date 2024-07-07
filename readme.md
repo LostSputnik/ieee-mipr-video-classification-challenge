@@ -10,3 +10,5 @@ Experiment Results as Presented in Technical Report w/ Codes:
 | End-to-End CNN-Transformer [code (training + inference)](end-to-end-cnn-transformer.ipynb)                                           | 0.6905     | 0.6820      |
 | Ensemble (Weighted) (CNN-Transformer and Per Frame) (Selected Submission on Kaggle) [ensemble code](weighted_ensemble_submission.py) | 0.7560     | 0.6576      |
 | Pretrained-CNN + RNN [code (training + inference)](pretrained-cnn-rnn.ipynb)                                                         | 0.6280     | 0.6571      |
+
+Given the large size of the model weights, we did not upload them to GitHub. However, if required, we can provide the trained weights via Google Drive to reproduce the submission files.
