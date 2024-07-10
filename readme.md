@@ -11,4 +11,4 @@ Experiment Results as Presented in Technical Report w/ Codes and Submission File
 | Ensemble (Weighted) (CNN-Transformer and Per Frame) (Selected Submission on Kaggle) [code](./ensemble-script/) | 0.7560     | 0.6576      |
 | Pretrained-CNN + RNN [code](./pretrained-cnn-rnn/)                                                         | 0.6280     | 0.6571      |
 
-Given the large size of the model weights, we did not upload them to GitHub. However, if required, we can provide the trained weights via Google Drive to reproduce the submission files.
+Given the large size of the model weights, we did not upload them to GitHub. You can download the trained weights from [Google Drive](https://drive.google.com/drive/folders/1Daqk3htA5xQcGdkq-Me314fJHKSVetez?usp=sharing) and update the paths in the inference codes to reproduce the results. 
