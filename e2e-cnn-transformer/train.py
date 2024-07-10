@@ -1,12 +1,9 @@
-# %% [markdown]
-# # Imports
 
-# %%
+# # Imports
 import os
 from tqdm import tqdm 
 
 import tensorflow as tf
-# import keras
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras import regularizers
 from tensorflow.keras import backend as K
@@ -18,15 +15,11 @@ from sklearn.model_selection import train_test_split
 
 print('running tf: ', tf.__version__)
 
-# %%
 # from classification_models.keras import Classifiers
-
 # SeResNeXT50, preprocess_fn = Classifiers.get('seresnext50')
 
-# %% [markdown]
 # # Config
 
-# %%
 DEBUG = False
 
 NUM_CLASSES = 2
@@ -39,15 +32,8 @@ NUM_FEATURES = 1280
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-# %% [markdown]
 # # Dataloaders
 
-# %% [markdown]
-# **TO DO**
-# - Better Frame Sampling
-# - Augs
-
-# %%
 def read_frames_from_folder(folder_path):
     folder_path = folder_path.numpy().decode('utf-8')
     # Get list of all frame files
@@ -99,7 +85,7 @@ def create_dataset(file_paths, labels, shuffle_buffer_size=None):
     dataset = dataset.prefetch(AUTOTUNE)
     return dataset
 
-# %%
+
 freeway_train_path = '/mnt/storage2/Sabbir/VideoClassification/Video_Classification_Pipeline/Data/freeway/train'
 road_train_path = '/mnt/storage2/Sabbir/VideoClassification/Video_Classification_Pipeline/Data/road/train'
 freeway_train_csv = '/mnt/storage2/Sabbir/VideoClassification/Video_Classification_Pipeline/Data/freeway_train.csv'
@@ -118,7 +104,6 @@ all_df = pd.concat([freeway_df, road_df])
 if DEBUG:
     all_df = all_df[:20]
 
-# %%
 # Split into train and validation sets
 train_df, val_df = train_test_split(all_df, test_size=0.2, random_state=42, stratify=all_df['risk'])
 
@@ -129,10 +114,8 @@ val_dataset = create_dataset(val_df['file_name'].values, val_df['risk'].values)
 print(f"Total videos for training: {len(train_df)}")
 print(f"Total videos for val: {len(val_df)}")
 
-# %% [markdown]
 # ## Sanity Check
 
-# %%
 # Iterate through the train dataset
 for videos, labels in train_dataset.take(1):
     print(videos.shape, labels.shape)
@@ -141,15 +124,8 @@ for videos, labels in train_dataset.take(1):
 for videos, labels in val_dataset.take(1):
     print(videos.shape, labels.shape)
 
-# %% [markdown]
 # # Model
 
-# %%
-# from classification_models.keras import Classifiers
-
-# SeResNeXT50, preprocess_fn = Classifiers.get('seresnext50')
-
-# %%
 def FeatureExtractor():
     base_model = tf.keras.applications.EfficientNetV2M(
         weights='imagenet', 
@@ -177,22 +153,20 @@ tf.keras.backend.clear_session()
 model = FeatureExtractor()
 model.summary()
 
-# %%
 def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
     # Layer Normalization and Multi-Head Attention
-    x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(inputs)  # Shape: (sequence_length, 256)
-    x = tf.keras.layers.MultiHeadAttention(key_dim=head_size, num_heads=num_heads, dropout=dropout)(x, x)  # Shape: (sequence_length, 256)
-    x = tf.keras.layers.Dropout(dropout)(x)  # Shape: (sequence_length, 256)
-    res = tf.keras.layers.Add()([x, inputs])  # Shape: (sequence_length, 256)
+    x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(inputs)  
+    x = tf.keras.layers.MultiHeadAttention(key_dim=head_size, num_heads=num_heads, dropout=dropout)(x, x)  
+    x = tf.keras.layers.Dropout(dropout)(x)  
+    res = tf.keras.layers.Add()([x, inputs])  
 
     # Feed Forward Part
-    x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(res)  # Shape: (sequence_length, 256)
-    x = tf.keras.layers.Dense(ff_dim, activation="relu")(x)  # Shape: (sequence_length, 256)
-    x = tf.keras.layers.Dropout(dropout)(x)  # Shape: (sequence_length, 256)
-    x = tf.keras.layers.Dense(inputs.shape[-1])(x)  # Shape: (sequence_length, 256)
-    return tf.keras.layers.Add()([x, res])  # Shape: (sequence_length, 256)
+    x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(res)  
+    x = tf.keras.layers.Dense(ff_dim, activation="relu")(x)  
+    x = tf.keras.layers.Dropout(dropout)(x)  
+    x = tf.keras.layers.Dense(inputs.shape[-1])(x)  
+    return tf.keras.layers.Add()([x, res])  
 
-# %%
 def SeqModel():
     inputs = tf.keras.Input((MAX_SEQ_LENGTH, IMG_SIZE, IMG_SIZE, 3))
     feature_extractor = FeatureExtractor()
@@ -217,10 +191,8 @@ tf.keras.backend.clear_session()
 model = SeqModel()
 model.summary()
 
-# %% [markdown]
 # ## Optimize & Compile
 
-# %%
 def lrfn(epoch):
     if epoch < lr_ramp_ep:
         lr = (lr_max - lr_start) / lr_ramp_ep * epoch + lr_start
@@ -237,7 +209,7 @@ def get_lr_callback():
     lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=False)
     return lr_callback
 
-# %%
+
 lr_start   = 0.0005
 lr_max     = 0.002 * 16
 lr_min     = 0.00001
@@ -250,7 +222,6 @@ y = [lrfn(x) for x in rng]
 # plt.plot(rng, y)
 print("Learning rate schedule: {:.3g} to {:.3g} to {:.3g}".format(y[0], max(y), y[-1]))
 
-# %%
 # callbacks
 weights_save_path = './weights/training_3/epoch-{epoch:02d}.weights.h5'
 
@@ -262,14 +233,10 @@ checkpoint = tf.keras.callbacks.ModelCheckpoint(weights_save_path,
                                                 mode='min')
 
 csv_logger = tf.keras.callbacks.CSVLogger('history.csv')
-
 learning_rate_reduction= tf.keras.callbacks.ReduceLROnPlateau(monitor='loss',patience=2,verbose=1,factor=0.1,min_lr=0.0000000001) 
-
-# callbacks = [checkpoint, learning_rate_reduction]
 
 callbacks = [checkpoint, csv_logger, get_lr_callback()]
 
-# %%
 METRICS = [
     tf.keras.metrics.CategoricalAccuracy(name='accuracy'),
     tf.keras.metrics.Precision(name='precision'),       
@@ -277,59 +244,30 @@ METRICS = [
     tf.keras.metrics.AUC(name='auc', multi_label=False, label_weights=[0, 1]),
 ]
 
-# %%
 model.compile(
     optimizer=tf.keras.optimizers.SGD(),
     loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False),
     metrics=METRICS,
 )
 
-# %% [markdown]
 # # Train
 
-# %%
 EPOCHS = 5 if DEBUG else EPOCHS
 
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
-#     steps_per_epoch=len(train_df) // batch_size,
-#     validation_steps=len(test_df) // batch_size,
     epochs=EPOCHS,
     callbacks=callbacks,
 )
 
-# %% [markdown]
-# ## Plots
-
-# %%
-# plt.figure(1)
-# plt.plot(history.history['auc'])
-# plt.plot(history.history['val_auc'])
-# plt.title('model auc')
-# plt.ylabel('auc')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'val'], loc='upper left')
-
-# plt.figure(2)
-# plt.plot(history.history['loss'])
-# plt.plot(history.history['val_loss'])
-# plt.title('model loss')
-# plt.ylabel('loss')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'val'], loc='upper right')
-# plt.show()
-
-# %% [markdown]
 # # Inference
 
-# %%
 # EPOCHS = 8
 WEIGHT_PATH = f'./weights/training_3/epoch-{EPOCHS:02d}.weights.h5'
 print(WEIGHT_PATH)
 model.load_weights(WEIGHT_PATH)
 
-# %%
 def create_test_dataset(file_paths):
     dataset = tf.data.Dataset.from_tensor_slices(file_paths)
     dataset = dataset.map(load_video_from_folder, num_parallel_calls=AUTOTUNE)
@@ -344,7 +282,6 @@ def run_inference(dataset, model):
         predictions.extend(preds)
     return predictions
 
-# %%
 # Load the sample submission file
 submission_df = pd.read_csv('/mnt/storage2/Sabbir/VideoClassification/Video_Classification_Pipeline/Data/sample_submission.csv')
 
@@ -375,10 +312,7 @@ positive_probs = [pred[1] for pred in preds]
 submission_df['risk'] = positive_probs
 submission_df.to_csv('submission.csv', index=False)
 
-# %%
 submission_df.head()
-
-# %%
 
 from datetime import datetime
 
