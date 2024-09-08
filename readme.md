@@ -1,4 +1,4 @@
-> Update: We've won 3rd Place at the competition! [Read Here](./ServerDown%20Presentation%20-%202nd%20AVA%20Challenge@IEEE%20MIPR%20%202024.pdf) for details on the competition task and our approaches. 
+> Update: We've won 3rd Place at the competition! [Read Here](./ServerDown%20Presentation%20-%202nd%20AVA%20Challenge@IEEE%20MIPR%20%202024.pdf) for details on the competition task and our approaches. We look forward to sharing the Technical Report as soon as possible!
 
 This repository contains codes and relevant materials for team ServerDown's submission to 2nd AVA Challenge@IEEE MIPR 2024.
 
